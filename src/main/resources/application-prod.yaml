@@ -1,0 +1,133 @@
+# Configuration pour l'environnement de production
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  # DataSource - Variables d'environnement obligatoires
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: ${DB_MIN_IDLE:5}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      pool-name: PaiyaHikariPool
+  
+  # JPA - Stricte en production
+  jpa:
+    hibernate:
+      ddl-auto: validate # JAMAIS create/update en prod
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        use_sql_comments: false
+  
+  # Redis
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    timeout: 60000
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+  
+  # Flyway
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+    clean-disabled: true # Sécurité: désactiver clean en prod
+    validate-on-migrate: true
+
+# Logging minimal en production
+logging:
+  level:
+    root: WARN
+    com.paiya: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+  
+  # Logs structurés JSON pour Cloud Logging
+  pattern:
+    console: "" # Laissé vide, logback-spring.xml gère
+  
+  file:
+    name: /var/log/paiya/paiya.log
+    max-size: 50MB
+    max-history: 30
+
+# Actuator - Endpoints limités en prod
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: when-authorized
+
+# JWT - Secret depuis variables d'environnement
+jwt:
+  secret: ${JWT_SECRET} # OBLIGATOIRE en prod
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# Paiya config production
+paiya:
+  cors:
+    allowed-origins: ${CORS_ORIGINS} # Liste des domaines autorisés
+    max-age: 3600
+  
+  storage:
+    type: ${STORAGE_TYPE:gcs}
+    gcs:
+      bucket-name: ${GCS_BUCKET_NAME}
+      project-id: ${GCP_PROJECT_ID}
+  
+  payment:
+    enabled: ${PAYMENT_ENABLED:true}
+    providers:
+      fedapay:
+        api-key: ${FEDAPAY_API_KEY}
+        webhook-secret: ${FEDAPAY_WEBHOOK_SECRET}
+        sandbox: ${FEDAPAY_SANDBOX:false}
+  
+  rate-limit:
+    enabled: true
+    requests-per-minute: ${RATE_LIMIT_RPM:100}
+    burst-capacity: ${RATE_LIMIT_BURST:200}
+
+# Swagger désactivé en production par défaut
+springdoc:
+  swagger-ui:
+    enabled: ${SWAGGER_ENABLED:false}
+  api-docs:
+    enabled: ${API_DOCS_ENABLED:false}
+
+# Server config optimisé
+server:
+  port: ${PORT:8080}
+  compression:
+    enabled: true
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    accept-count: 100
+    max-connections: 10000
+  error:
+    include-stacktrace: never
+    include-exception: false
+    include-message: always
