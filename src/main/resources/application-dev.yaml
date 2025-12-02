@@ -6,9 +6,9 @@ spring:
   
   # DataSource locale
   datasource:
-    url: jdbc:postgresql://localhost:5432/paiya_dev
-    username: paiya_user
-    password: dev_password
+    url: jdbc:postgresql://localhost:5432/paiya_db
+    username: admin
+    password: admin123
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
