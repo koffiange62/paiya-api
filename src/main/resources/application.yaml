@@ -24,8 +24,7 @@ spring:
   # Configuration Jackson
   jackson:
     serialization:
-      write-dates-as-timestamps: false
-      fail-on-empty-beans: false
+      WRITE_EMPTY_JSON_ARRAYS : true
     deserialization:
       fail-on-unknown-properties: false
     time-zone: UTC
